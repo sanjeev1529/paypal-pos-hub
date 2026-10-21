@@ -197,6 +197,12 @@ class WalletView(ft.Container):
             ft.Row([deposit_card, withdraw_card], spacing=16)
         ], spacing=0, expand=True)
 
+    def safe_update(self):
+        try:
+            self.update()
+        except Exception:
+            pass
+
     def handle_send_money(self, _):
         recipient = self.send_recipient.value.strip()
         amount_str = self.send_amount.value.strip()
@@ -225,7 +231,7 @@ class WalletView(ft.Container):
             self.send_amount.value = ""
             self.send_note.value = ""
             self.content = self.build_ui()
-            self.update()
+            self.safe_update()
             if self.on_transaction_completed:
                 self.on_transaction_completed()
             self.show_snack(f"✓ ${amount:.2f} sent to {recipient} successfully!")
@@ -259,7 +265,7 @@ class WalletView(ft.Container):
                 reference_note=f"Payment for {note or 'Invoice'}"
             )
             self.content = self.build_ui()
-            self.update()
+            self.safe_update()
             if self.on_transaction_completed:
                 self.on_transaction_completed()
             self.show_snack(f"✓ Received ${amount:.2f} payment from customer!")
@@ -287,7 +293,7 @@ class WalletView(ft.Container):
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
             border_radius=ft.BorderRadius.all(10)
         )
-        self.update()
+        self.safe_update()
 
     def handle_deposit(self, _):
         try:
@@ -312,7 +318,7 @@ class WalletView(ft.Container):
         )
         self.deposit_amount.value = ""
         self.content = self.build_ui()
-        self.update()
+        self.safe_update()
         if self.on_transaction_completed:
             self.on_transaction_completed()
         self.show_snack(f"✓ Added ${amt:.2f} to wallet balance!")
@@ -345,7 +351,7 @@ class WalletView(ft.Container):
         )
         self.withdraw_amount.value = ""
         self.content = self.build_ui()
-        self.update()
+        self.safe_update()
         if self.on_transaction_completed:
             self.on_transaction_completed()
         self.show_snack(f"✓ Initiated withdrawal of ${amt:.2f} to bank account!")
@@ -355,4 +361,4 @@ class WalletView(ft.Container):
 
     def refresh(self):
         self.content = self.build_ui()
-        self.update()
+        self.safe_update()

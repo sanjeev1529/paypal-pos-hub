@@ -178,12 +178,12 @@ class SettingsView(ft.Container):
         if not client_id or not client_secret:
             self.test_status_text.value = "⚠️ Please enter both Client ID and Client Secret to test connection."
             self.test_status_text.color = ft.Colors.ORANGE_800
-            self.update()
+            self.safe_update()
             return
 
         self.test_status_text.value = "Connecting to PayPal OAuth server..."
         self.test_status_text.color = ft.Colors.BLUE_700
-        self.update()
+        self.safe_update()
 
         res = paypal_service.test_connection(client_id, client_secret, mode)
         if res["success"]:
@@ -192,7 +192,7 @@ class SettingsView(ft.Container):
         else:
             self.test_status_text.value = f"✗ {res['message']}"
             self.test_status_text.color = ft.Colors.RED_700
-        self.update()
+        self.safe_update()
 
     def save_paypal_settings(self, _):
         database.set_setting("paypal_mode", self.paypal_mode_dropdown.value or "sandbox")
