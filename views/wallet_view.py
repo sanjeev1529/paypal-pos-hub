@@ -6,30 +6,30 @@ from qr_service import generate_qr_bytes
 class WalletView(ft.Container):
     def __init__(self, page: ft.Page, on_transaction_completed=None, initial_tab=0):
         super().__init__(expand=True)
-        self.page = page
+        self.app_page = page
         self.on_transaction_completed = on_transaction_completed
         self.active_tab = initial_tab
-        self.padding = ft.padding.all(20)
+        self.padding = ft.Padding.all(20)
 
         # Send Tab Inputs
         self.send_recipient = ft.TextField(
             label="Recipient Email or PayPal ID",
             hint_text="e.g. partner@example.com",
             prefix_icon=ft.Icons.PERSON_OUTLINE,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
         self.send_amount = ft.TextField(
             label="Amount ($)",
             hint_text="0.00",
             prefix_icon=ft.Icons.ATTACH_MONEY,
-            border_radius=ft.border_radius.all(10),
+            border_radius=ft.BorderRadius.all(10),
             keyboard_type=ft.KeyboardType.NUMBER
         )
         self.send_note = ft.TextField(
             label="What is this for? (Optional)",
             hint_text="e.g. Invoice payment or dinner split",
             prefix_icon=ft.Icons.NOTES,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
 
         # Request Tab Inputs
@@ -38,7 +38,7 @@ class WalletView(ft.Container):
             hint_text="50.00",
             value="50.00",
             prefix_icon=ft.Icons.ATTACH_MONEY,
-            border_radius=ft.border_radius.all(10),
+            border_radius=ft.BorderRadius.all(10),
             keyboard_type=ft.KeyboardType.NUMBER
         )
         self.req_note = ft.TextField(
@@ -46,23 +46,23 @@ class WalletView(ft.Container):
             hint_text="e.g. Consultation fee",
             value="Payment Request",
             prefix_icon=ft.Icons.DESCRIPTION,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
-        self.qr_container = ft.Container(alignment=ft.alignment.center)
+        self.qr_container = ft.Container(alignment=ft.Alignment.CENTER)
 
         # Deposit / Withdraw Inputs
         self.deposit_amount = ft.TextField(
             label="Deposit Amount ($)",
             hint_text="100.00",
             prefix_icon=ft.Icons.ADD_CARD,
-            border_radius=ft.border_radius.all(10),
+            border_radius=ft.BorderRadius.all(10),
             keyboard_type=ft.KeyboardType.NUMBER
         )
         self.withdraw_amount = ft.TextField(
             label="Withdrawal Amount ($)",
             hint_text="100.00",
             prefix_icon=ft.Icons.ACCOUNT_BALANCE,
-            border_radius=ft.border_radius.all(10),
+            border_radius=ft.BorderRadius.all(10),
             keyboard_type=ft.KeyboardType.NUMBER
         )
 
@@ -76,25 +76,26 @@ class WalletView(ft.Container):
         balance_card = ft.Container(
             content=ft.Row([
                 ft.Column([
-                    ft.Text("CURRENT AVAILABLE BALANCE", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE70),
+                    ft.Text("CURRENT AVAILABLE BALANCE", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE_70),
                     ft.Text(f"${balance:,.2f}", size=34, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
-                    ft.Text(f"Currency: {wallet['currency']} • Status: Active", size=12, color=ft.Colors.WHITE70),
+                    ft.Text(f"Currency: {wallet['currency']} • Status: Active", size=12, color=ft.Colors.WHITE_70),
                 ], spacing=4),
                 ft.Container(
                     content=ft.Icon(ft.Icons.ACCOUNT_BALANCE_WALLET, color=ft.Colors.WHITE, size=36),
-                    bgcolor=ft.Colors.WHITE24,
-                    padding=ft.padding.all(14),
-                    border_radius=ft.border_radius.all(14)
+                    bgcolor=ft.Colors.WHITE_24,
+                    padding=ft.Padding.all(14),
+                    border_radius=ft.BorderRadius.all(14)
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            padding=ft.padding.all(22),
-            border_radius=ft.border_radius.all(16),
+            padding=ft.Padding.all(22),
+            border_radius=ft.BorderRadius.all(16),
             gradient=ft.LinearGradient(
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
                 colors=["#003087", "#0079C1"]
             )
         )
 
-        # Preset amount helper buttons
         def set_preset_amount(amt: float):
             self.send_amount.value = f"{amt:.2f}"
             self.send_amount.update()
@@ -128,10 +129,10 @@ class WalletView(ft.Container):
                     on_click=self.handle_send_money
                 )
             ], spacing=12),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(14),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(14),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
             expand=True
         )
 
@@ -154,10 +155,10 @@ class WalletView(ft.Container):
                 ),
                 self.qr_container
             ], spacing=12),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(14),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(14),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
             expand=True
         )
 
@@ -168,10 +169,10 @@ class WalletView(ft.Container):
                 self.deposit_amount,
                 ft.FilledButton("Top-Up Wallet", icon=ft.Icons.ADD, style=ft.ButtonStyle(bgcolor=ft.Colors.GREEN_700, color=ft.Colors.WHITE), on_click=self.handle_deposit)
             ], spacing=10),
-            padding=ft.padding.all(16),
-            border_radius=ft.border_radius.all(12),
+            padding=ft.Padding.all(16),
+            border_radius=ft.BorderRadius.all(12),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
             expand=True
         )
 
@@ -181,10 +182,10 @@ class WalletView(ft.Container):
                 self.withdraw_amount,
                 ft.FilledButton("Withdraw Funds", icon=ft.Icons.CALL_MADE, style=ft.ButtonStyle(bgcolor="#003087", color=ft.Colors.WHITE), on_click=self.handle_withdraw)
             ], spacing=10),
-            padding=ft.padding.all(16),
-            border_radius=ft.border_radius.all(12),
+            padding=ft.Padding.all(16),
+            border_radius=ft.BorderRadius.all(12),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
             expand=True
         )
 
@@ -218,7 +219,6 @@ class WalletView(ft.Container):
             self.show_snack(f"Insufficient funds! Your balance is ${wallet['balance']:.2f}")
             return
 
-        # Execute P2P Transfer
         res = paypal_service.create_p2p_transfer(recipient, amount, "USD", note)
         if res["success"]:
             self.send_recipient.value = ""
@@ -246,7 +246,6 @@ class WalletView(ft.Container):
         qr_bytes = generate_qr_bytes(req_data["qr_payload"], box_size=5)
 
         def simulate_incoming_payment(_):
-            # Simulate customer scanning and paying
             database.update_wallet_balance(amount)
             database.create_transaction(
                 tx_type="transfer_received",
@@ -271,10 +270,10 @@ class WalletView(ft.Container):
                 ft.Text(f"Scan to Pay ${amount:.2f} via PayPal:", size=13, weight=ft.FontWeight.BOLD),
                 ft.Container(
                     content=ft.Image(src=qr_bytes, width=160, height=160),
-                    alignment=ft.alignment.center,
-                    padding=ft.padding.all(8),
-                    border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
-                    border_radius=ft.border_radius.all(8)
+                    alignment=ft.Alignment.CENTER,
+                    padding=ft.Padding.all(8),
+                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
+                    border_radius=ft.BorderRadius.all(8)
                 ),
                 ft.Text(f"Invoice Reference: {req_data['request_id']}", size=11, color=ft.Colors.GREY_600),
                 ft.FilledTonalButton(
@@ -284,9 +283,9 @@ class WalletView(ft.Container):
                     on_click=simulate_incoming_payment
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
-            padding=ft.padding.all(10),
+            padding=ft.Padding.all(10),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
         self.update()
 
@@ -352,7 +351,7 @@ class WalletView(ft.Container):
         self.show_snack(f"✓ Initiated withdrawal of ${amt:.2f} to bank account!")
 
     def show_snack(self, msg: str):
-        self.page.show_dialog(ft.SnackBar(ft.Text(msg)))
+        self.app_page.show_dialog(ft.SnackBar(ft.Text(msg)))
 
     def refresh(self):
         self.content = self.build_ui()

@@ -4,9 +4,9 @@ import database
 class DashboardView(ft.Container):
     def __init__(self, page: ft.Page, navigate_to):
         super().__init__(expand=True)
-        self.page = page
+        self.app_page = page
         self.navigate_to = navigate_to
-        self.padding = ft.padding.all(24)
+        self.padding = ft.Padding.all(24)
         self.content = self.build_ui()
 
     def build_ui(self):
@@ -18,17 +18,17 @@ class DashboardView(ft.Container):
             content=ft.Column([
                 ft.Row([
                     ft.Column([
-                        ft.Text("TOTAL WALLET BALANCE", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE70),
+                        ft.Text("TOTAL WALLET BALANCE", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE_70),
                         ft.Text(f"{currency_sym}{summary['balance']:,.2f}", size=36, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                     ], spacing=4),
                     ft.Container(
                         content=ft.Icon(ft.Icons.ACCOUNT_BALANCE_WALLET, color=ft.Colors.WHITE, size=32),
-                        padding=ft.padding.all(12),
-                        border_radius=ft.border_radius.all(12),
-                        bgcolor=ft.Colors.WHITE24
+                        padding=ft.Padding.all(12),
+                        border_radius=ft.BorderRadius.all(12),
+                        bgcolor=ft.Colors.WHITE_24
                     )
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Divider(color=ft.Colors.WHITE24, height=20),
+                ft.Divider(color=ft.Colors.WHITE_24, height=20),
                 ft.Row([
                     ft.FilledButton(
                         "New Sale (POS)",
@@ -39,25 +39,25 @@ class DashboardView(ft.Container):
                     ft.FilledButton(
                         "Send Money",
                         icon=ft.Icons.SEND,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.WHITE24, color=ft.Colors.WHITE),
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.WHITE_24, color=ft.Colors.WHITE),
                         on_click=lambda _: self.navigate_to("wallet_send")
                     ),
                     ft.FilledButton(
                         "Request / QR",
                         icon=ft.Icons.QR_CODE,
-                        style=ft.ButtonStyle(bgcolor=ft.Colors.WHITE24, color=ft.Colors.WHITE),
+                        style=ft.ButtonStyle(bgcolor=ft.Colors.WHITE_24, color=ft.Colors.WHITE),
                         on_click=lambda _: self.navigate_to("wallet_receive")
                     ),
                 ], spacing=10, wrap=True)
             ]),
-            padding=ft.padding.all(24),
-            border_radius=ft.border_radius.all(16),
+            padding=ft.Padding.all(24),
+            border_radius=ft.BorderRadius.all(16),
             gradient=ft.LinearGradient(
-                begin=ft.alignment.top_left,
-                end=ft.alignment.bottom_right,
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
                 colors=["#003087", "#0079C1"]
             ),
-            shadow=ft.BoxShadow(blur_radius=15, color=ft.Colors.BLACK12, offset=ft.Offset(0, 4))
+            shadow=ft.BoxShadow(blur_radius=15, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 4))
         )
 
         # Metric Cards Row
@@ -114,8 +114,8 @@ class DashboardView(ft.Container):
                             ft.Row([
                                 ft.Container(
                                     content=ft.Icon(icon_name, color="#003087", size=20),
-                                    padding=ft.padding.all(10),
-                                    border_radius=ft.border_radius.all(10),
+                                    padding=ft.Padding.all(10),
+                                    border_radius=ft.BorderRadius.all(10),
                                     bgcolor=ft.Colors.BLUE_50
                                 ),
                                 ft.Column([
@@ -128,13 +128,13 @@ class DashboardView(ft.Container):
                                 ft.Container(
                                     content=ft.Text(tx["status"].upper(), size=10, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_800 if tx["status"] == "completed" else ft.Colors.ORANGE_800),
                                     bgcolor=ft.Colors.GREEN_100 if tx["status"] == "completed" else ft.Colors.ORANGE_100,
-                                    padding=ft.padding.symmetric(horizontal=6, vertical=2),
-                                    border_radius=ft.border_radius.all(4)
+                                    padding=ft.Padding.symmetric(horizontal=6, vertical=2),
+                                    border_radius=ft.BorderRadius.all(4)
                                 )
                             ], horizontal_alignment=ft.CrossAxisAlignment.END, spacing=2)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        padding=ft.padding.symmetric(vertical=8, horizontal=12),
-                        border_radius=ft.border_radius.all(8),
+                        padding=ft.Padding.symmetric(vertical=8, horizontal=12),
+                        border_radius=ft.BorderRadius.all(8),
                         bgcolor=ft.Colors.SURFACE_CONTAINER_LOW
                     )
                 )
@@ -150,10 +150,10 @@ class DashboardView(ft.Container):
                 ft.Divider(height=10),
                 ft.Column(tx_rows, spacing=8)
             ]),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(16),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(16),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
         return ft.ListView([
@@ -171,20 +171,26 @@ class DashboardView(ft.Container):
                     ft.Text(title, size=13, weight=ft.FontWeight.W_500, color=ft.Colors.ON_SURFACE_VARIANT),
                     ft.Container(
                         content=ft.Icon(icon, color=icon_color, size=20),
-                        padding=ft.padding.all(8),
-                        border_radius=ft.border_radius.all(8),
+                        padding=ft.Padding.all(8),
+                        border_radius=ft.BorderRadius.all(8),
                         bgcolor=bg_color
                     )
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Text(value, size=22, weight=ft.FontWeight.BOLD),
                 ft.Text(subtitle, size=12, color=ft.Colors.GREY_600)
             ], spacing=6),
-            padding=ft.padding.all(18),
-            border_radius=ft.border_radius.all(12),
+            padding=ft.Padding.all(18),
+            border_radius=ft.BorderRadius.all(12),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
+
+    def safe_update(self):
+        try:
+            self.update()
+        except:
+            pass
 
     def refresh(self):
         self.content = self.build_ui()
-        self.update()
+        self.safe_update()

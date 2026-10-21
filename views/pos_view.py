@@ -11,12 +11,12 @@ def get_icon(name: str):
 class PosView(ft.Container):
     def __init__(self, page: ft.Page, on_transaction_completed=None):
         super().__init__(expand=True)
-        self.page = page
+        self.app_page = page
         self.on_transaction_completed = on_transaction_completed
         self.cart = {}  # {product_id: {"product": dict, "quantity": int}}
         self.selected_category = "All"
         self.search_term = ""
-        self.padding = ft.padding.all(16)
+        self.padding = ft.Padding.all(16)
         
         # UI Component references
         self.products_grid = ft.GridView(
@@ -63,8 +63,8 @@ class PosView(ft.Container):
             hint_text="Search catalog or SKU...",
             prefix_icon=ft.Icons.SEARCH,
             dense=True,
-            content_padding=ft.padding.symmetric(horizontal=12, vertical=8),
-            border_radius=ft.border_radius.all(10),
+            content_padding=ft.Padding.symmetric(horizontal=12, vertical=8),
+            border_radius=ft.BorderRadius.all(10),
             expand=True,
             on_change=self.on_search_change
         )
@@ -104,19 +104,25 @@ class PosView(ft.Container):
                 ], spacing=6)
             ], expand=True),
             width=340,
-            padding=ft.padding.all(16),
-            border_radius=ft.border_radius.all(16),
+            padding=ft.Padding.all(16),
+            border_radius=ft.BorderRadius.all(16),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
         return ft.Row([left_panel, cart_panel], expand=True, spacing=16)
+
+    def safe_update(self):
+        try:
+            self.update()
+        except:
+            pass
 
     def select_category(self, cat: str):
         self.selected_category = cat
         self.load_products()
         self.content = self.build_ui()
-        self.update()
+        self.safe_update()
 
     def on_search_change(self, e):
         self.search_term = e.control.value
@@ -140,13 +146,13 @@ class PosView(ft.Container):
                         ft.Container(
                             content=ft.Icon(get_icon(prod["icon"]), color="#003087", size=24),
                             bgcolor=ft.Colors.BLUE_50,
-                            padding=ft.padding.all(10),
-                            border_radius=ft.border_radius.all(10)
+                            padding=ft.Padding.all(10),
+                            border_radius=ft.BorderRadius.all(10)
                         ),
                         ft.Container(
                             content=ft.Text(stock_label, size=10, weight=ft.FontWeight.BOLD, color=stock_color),
-                            padding=ft.padding.symmetric(horizontal=6, vertical=2),
-                            border_radius=ft.border_radius.all(4),
+                            padding=ft.Padding.symmetric(horizontal=6, vertical=2),
+                            border_radius=ft.BorderRadius.all(4),
                             bgcolor=ft.Colors.GREEN_50 if prod['stock'] > 10 else ft.Colors.ORANGE_50
                         )
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -165,14 +171,14 @@ class PosView(ft.Container):
                         on_click=lambda _, p=prod: self.add_to_cart(p)
                     )
                 ], spacing=6),
-                padding=ft.padding.all(14),
-                border_radius=ft.border_radius.all(14),
+                padding=ft.Padding.all(14),
+                border_radius=ft.BorderRadius.all(14),
                 bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-                border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+                border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
             )
             self.products_grid.controls.append(card)
 
-        self.update()
+        self.safe_update()
 
     def add_to_cart(self, prod: dict):
         pid = prod["id"]
@@ -220,8 +226,8 @@ class PosView(ft.Container):
                         ft.Text("Cart is currently empty", color=ft.Colors.GREY_500),
                         ft.Text("Select products from the left to start an order", size=12, color=ft.Colors.GREY_400)
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
-                    alignment=ft.alignment.center,
-                    padding=ft.padding.all(20)
+                    alignment=ft.Alignment.CENTER,
+                    padding=ft.Padding.all(20)
                 )
             )
             self.checkout_btn.disabled = True
@@ -247,8 +253,8 @@ class PosView(ft.Container):
                         ft.Text(f"${line_total:.2f}", size=13, weight=ft.FontWeight.BOLD),
                         ft.IconButton(ft.Icons.DELETE_OUTLINE, icon_size=16, icon_color=ft.Colors.RED_400, on_click=lambda _, i=pid: self.remove_item(i))
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    padding=ft.padding.all(8),
-                    border_radius=ft.border_radius.all(8),
+                    padding=ft.Padding.all(8),
+                    border_radius=ft.BorderRadius.all(8),
                     bgcolor=ft.Colors.SURFACE_CONTAINER_LOW
                 )
                 self.cart_items_col.controls.append(row)
@@ -262,7 +268,7 @@ class PosView(ft.Container):
             self.checkout_btn.disabled = False
             self.checkout_btn.text = f"Checkout (${total:,.2f})"
 
-        self.update()
+        self.safe_update()
 
     def open_checkout_dialog(self, _):
         if not self.cart:
@@ -283,7 +289,6 @@ class PosView(ft.Container):
 
         qr_img_bytes = generate_qr_bytes(order["qr_payload"], box_size=5)
 
-        # Dialog state & controls
         status_banner = ft.Text(f"Mode: {order['mode']}", size=12, color=ft.Colors.BLUE_700, weight=ft.FontWeight.BOLD)
 
         def complete_payment(method: str):
@@ -292,7 +297,6 @@ class PosView(ft.Container):
                 if not capture_res["success"]:
                     self.show_snack(f"Payment failed: {capture_res.get('message')}")
                     return
-                # Credit to wallet as revenue
                 database.update_wallet_balance(total)
                 pay_ref = order["order_id"]
             elif method == "wallet":
@@ -302,11 +306,9 @@ class PosView(ft.Container):
                 database.update_wallet_balance(-total)
                 pay_ref = "WALLET-DIRECT"
             elif method == "cash":
-                # Cash tender: credits wallet as store cash inflow
                 database.update_wallet_balance(total)
                 pay_ref = "CASH-REGISTER"
 
-            # Deduct inventory stock
             items_summary = []
             for item in self.cart.values():
                 database.deduct_product_stock(item["product"]["id"], item["quantity"])
@@ -317,7 +319,6 @@ class PosView(ft.Container):
                     "subtotal": round(item["product"]["price"] * item["quantity"], 2)
                 })
 
-            # Create transaction record
             tx_id = database.create_transaction(
                 tx_type="pos_sale",
                 amount=total,
@@ -331,18 +332,14 @@ class PosView(ft.Container):
                 items_list=items_summary
             )
 
-            # Close checkout dialog
-            self.page.pop_dialog()
+            self.app_page.pop_dialog()
 
-            # Clear cart and refresh products view
-            cart_copy = dict(self.cart)
             self.clear_cart()
             self.load_products()
 
             if self.on_transaction_completed:
                 self.on_transaction_completed()
 
-            # Show Receipt
             self.show_receipt(tx_id, method, items_summary, subtotal, tax, total, pay_ref)
 
         checkout_dialog = ft.AlertDialog(
@@ -355,27 +352,31 @@ class PosView(ft.Container):
                     ft.Container(
                         content=ft.Row([
                             ft.Column([
-                                ft.Text("ORDER TOTAL DUE", size=11, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE70),
+                                ft.Text("ORDER TOTAL DUE", size=11, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE_70),
                                 ft.Text(f"${total:,.2f}", size=28, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
                             ], spacing=2),
                             ft.Container(
                                 content=status_banner,
                                 bgcolor=ft.Colors.WHITE,
-                                padding=ft.padding.symmetric(horizontal=8, vertical=4),
-                                border_radius=ft.border_radius.all(6)
+                                padding=ft.Padding.symmetric(horizontal=8, vertical=4),
+                                border_radius=ft.BorderRadius.all(6)
                             )
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        padding=ft.padding.all(16),
-                        border_radius=ft.border_radius.all(12),
-                        gradient=ft.LinearGradient(colors=["#003087", "#0079C1"])
+                        padding=ft.Padding.all(16),
+                        border_radius=ft.BorderRadius.all(12),
+                        gradient=ft.LinearGradient(
+                            begin=ft.Alignment.TOP_LEFT,
+                            end=ft.Alignment.BOTTOM_RIGHT,
+                            colors=["#003087", "#0079C1"]
+                        )
                     ),
                     ft.Text("Option 1: Scan & Pay with PayPal", weight=ft.FontWeight.BOLD, size=14),
                     ft.Row([
                         ft.Container(
                             content=ft.Image(src=qr_img_bytes, width=140, height=140),
-                            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT),
-                            border_radius=ft.border_radius.all(8),
-                            padding=ft.padding.all(6)
+                            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
+                            border_radius=ft.BorderRadius.all(8),
+                            padding=ft.Padding.all(6)
                         ),
                         ft.Column([
                             ft.Text(f"Order: {order['order_id'][:16]}...", size=12, weight=ft.FontWeight.W_600),
@@ -408,11 +409,11 @@ class PosView(ft.Container):
                 height=420
             ),
             actions=[
-                ft.TextButton("Cancel", on_click=lambda _: self.page.pop_dialog())
+                ft.TextButton("Cancel", on_click=lambda _: self.app_page.pop_dialog())
             ]
         )
 
-        self.page.show_dialog(checkout_dialog)
+        self.app_page.show_dialog(checkout_dialog)
 
     def show_receipt(self, tx_id, method, items, subtotal, tax, total, pay_ref):
         item_rows = []
@@ -438,8 +439,8 @@ class PosView(ft.Container):
                             ft.Text(f"Receipt ID: {tx_id}", size=12, weight=ft.FontWeight.W_500),
                             ft.Text(f"Payment Method: {method.upper()} ({pay_ref})", size=11, color=ft.Colors.GREY_700),
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
-                        alignment=ft.alignment.center,
-                        padding=ft.padding.only(bottom=8)
+                        alignment=ft.Alignment.CENTER,
+                        padding=ft.Padding.only(bottom=8)
                     ),
                     ft.Divider(height=10),
                     ft.Column(item_rows, spacing=4),
@@ -451,22 +452,22 @@ class PosView(ft.Container):
                     ft.Container(
                         content=ft.Text("✓ Payment Approved & Recorded in Database", size=11, color=ft.Colors.GREEN_800, weight=ft.FontWeight.BOLD),
                         bgcolor=ft.Colors.GREEN_50,
-                        padding=ft.padding.all(8),
-                        border_radius=ft.border_radius.all(6),
-                        alignment=ft.alignment.center
+                        padding=ft.Padding.all(8),
+                        border_radius=ft.BorderRadius.all(6),
+                        alignment=ft.Alignment.CENTER
                     )
                 ], spacing=6, scroll=ft.ScrollMode.AUTO),
                 width=360,
                 height=380
             ),
             actions=[
-                ft.FilledButton("Done", style=ft.ButtonStyle(bgcolor="#003087", color=ft.Colors.WHITE), on_click=lambda _: self.page.pop_dialog())
+                ft.FilledButton("Done", style=ft.ButtonStyle(bgcolor="#003087", color=ft.Colors.WHITE), on_click=lambda _: self.app_page.pop_dialog())
             ]
         )
-        self.page.show_dialog(receipt_dialog)
+        self.app_page.show_dialog(receipt_dialog)
 
     def show_snack(self, msg: str):
-        self.page.show_dialog(ft.SnackBar(ft.Text(msg)))
+        self.app_page.show_dialog(ft.SnackBar(ft.Text(msg)))
 
     def refresh(self):
         self.load_products()

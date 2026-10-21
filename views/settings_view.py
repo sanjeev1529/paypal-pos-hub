@@ -5,9 +5,9 @@ from paypal_service import paypal_service
 class SettingsView(ft.Container):
     def __init__(self, page: ft.Page, on_settings_changed=None):
         super().__init__(expand=True)
-        self.page = page
+        self.app_page = page
         self.on_settings_changed = on_settings_changed
-        self.padding = ft.padding.all(20)
+        self.padding = ft.Padding.all(20)
 
         # Settings controls
         self.paypal_mode_dropdown = ft.Dropdown(
@@ -17,21 +17,21 @@ class SettingsView(ft.Container):
                 ft.DropdownOption("sandbox", "Sandbox (Testing & Developer)"),
                 ft.DropdownOption("live", "Live (Production Payments)")
             ],
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
         self.client_id_field = ft.TextField(
             label="PayPal REST API Client ID",
             hint_text="e.g. A21AA...",
             password=True,
             can_reveal_password=True,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
         self.client_secret_field = ft.TextField(
             label="PayPal REST API Client Secret",
             hint_text="e.g. EK...",
             password=True,
             can_reveal_password=True,
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
         self.simulation_switch = ft.Switch(
             label="Enable Demo / Simulation Sandbox Fallback",
@@ -39,8 +39,8 @@ class SettingsView(ft.Container):
         )
         self.test_status_text = ft.Text("", size=12)
 
-        self.store_name_field = ft.TextField(label="Store / Business Name", border_radius=ft.border_radius.all(10))
-        self.tax_rate_field = ft.TextField(label="Default Tax Rate (%)", border_radius=ft.border_radius.all(10), keyboard_type=ft.KeyboardType.NUMBER)
+        self.store_name_field = ft.TextField(label="Store / Business Name", border_radius=ft.BorderRadius.all(10))
+        self.tax_rate_field = ft.TextField(label="Default Tax Rate (%)", border_radius=ft.BorderRadius.all(10), keyboard_type=ft.KeyboardType.NUMBER)
         self.currency_dropdown = ft.Dropdown(
             label="Default Currency",
             value="USD",
@@ -49,7 +49,7 @@ class SettingsView(ft.Container):
                 ft.DropdownOption("EUR", "EUR (€) - Euro"),
                 ft.DropdownOption("GBP", "GBP (£) - British Pound")
             ],
-            border_radius=ft.border_radius.all(10)
+            border_radius=ft.BorderRadius.all(10)
         )
 
         self.content = self.build_ui()
@@ -88,10 +88,10 @@ class SettingsView(ft.Container):
                     )
                 ], spacing=10)
             ], spacing=12),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(14),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(14),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
         # Section 2: Store Profile Settings
@@ -112,10 +112,10 @@ class SettingsView(ft.Container):
                     on_click=self.save_store_settings
                 )
             ], spacing=12),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(14),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(14),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
         # Section 3: Data & Reset
@@ -136,10 +136,10 @@ class SettingsView(ft.Container):
                     )
                 ])
             ], spacing=12),
-            padding=ft.padding.all(20),
-            border_radius=ft.border_radius.all(14),
+            padding=ft.Padding.all(20),
+            border_radius=ft.BorderRadius.all(14),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-            border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+            border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
         return ft.ListView([
@@ -152,6 +152,12 @@ class SettingsView(ft.Container):
             data_card
         ], spacing=0, expand=True)
 
+    def safe_update(self):
+        try:
+            self.update()
+        except:
+            pass
+
     def load_values(self):
         settings = database.get_all_settings()
         self.paypal_mode_dropdown.value = settings.get("paypal_mode", "sandbox")
@@ -162,7 +168,7 @@ class SettingsView(ft.Container):
         self.store_name_field.value = settings.get("store_name", "NovaTech Retail & Fintech")
         self.tax_rate_field.value = settings.get("tax_rate", "8.0")
         self.currency_dropdown.value = settings.get("currency", "USD")
-        self.update()
+        self.safe_update()
 
     def test_paypal_connection(self, _):
         client_id = self.client_id_field.value.strip()
@@ -196,7 +202,7 @@ class SettingsView(ft.Container):
 
         if self.on_settings_changed:
             self.on_settings_changed()
-        self.page.show_dialog(ft.SnackBar(ft.Text("✓ PayPal settings saved successfully!")))
+        self.app_page.show_dialog(ft.SnackBar(ft.Text("✓ PayPal settings saved successfully!")))
 
     def save_store_settings(self, _):
         store_name = self.store_name_field.value.strip()
@@ -204,12 +210,12 @@ class SettingsView(ft.Container):
         currency = self.currency_dropdown.value or "USD"
 
         if not store_name:
-            self.page.show_dialog(ft.SnackBar(ft.Text("Store name cannot be empty.")))
+            self.app_page.show_dialog(ft.SnackBar(ft.Text("Store name cannot be empty.")))
             return
         try:
             float(tax_str)
         except ValueError:
-            self.page.show_dialog(ft.SnackBar(ft.Text("Tax rate must be a valid number.")))
+            self.app_page.show_dialog(ft.SnackBar(ft.Text("Tax rate must be a valid number.")))
             return
 
         database.set_setting("store_name", store_name)
@@ -218,15 +224,14 @@ class SettingsView(ft.Container):
 
         if self.on_settings_changed:
             self.on_settings_changed()
-        self.page.show_dialog(ft.SnackBar(ft.Text("✓ Store settings updated!")))
+        self.app_page.show_dialog(ft.SnackBar(ft.Text("✓ Store settings updated!")))
 
     def reset_data(self, _):
-        # Re-initialize DB
         database.init_db()
         self.load_values()
         if self.on_settings_changed:
             self.on_settings_changed()
-        self.page.show_dialog(ft.SnackBar(ft.Text("✓ Demo database reloaded with fresh sample data.")))
+        self.app_page.show_dialog(ft.SnackBar(ft.Text("✓ Demo database reloaded with fresh sample data.")))
 
     def refresh(self):
         self.load_values()

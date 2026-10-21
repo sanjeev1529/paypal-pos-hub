@@ -24,8 +24,8 @@ def main(page: ft.Page):
     mode_badge_text = ft.Text("", size=11, weight=ft.FontWeight.BOLD)
     mode_badge_container = ft.Container(
         content=mode_badge_text,
-        padding=ft.padding.symmetric(horizontal=10, vertical=4),
-        border_radius=ft.border_radius.all(12),
+        padding=ft.Padding.symmetric(horizontal=10, vertical=4),
+        border_radius=ft.BorderRadius.all(12),
     )
 
     balance_pill_text = ft.Text("$0.00", size=13, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
@@ -35,8 +35,8 @@ def main(page: ft.Page):
             balance_pill_text
         ], spacing=6),
         bgcolor="#003087",
-        padding=ft.padding.symmetric(horizontal=12, vertical=6),
-        border_radius=ft.border_radius.all(20),
+        padding=ft.Padding.symmetric(horizontal=12, vertical=6),
+        border_radius=ft.BorderRadius.all(20),
         on_click=lambda _: navigate_to("wallet")
     )
 
@@ -81,8 +81,8 @@ def main(page: ft.Page):
             ft.Row([
                 ft.Container(
                     content=ft.Icon(ft.Icons.PAYMENTS_ROUNDED, color=ft.Colors.WHITE, size=22),
-                    padding=ft.padding.all(8),
-                    border_radius=ft.border_radius.all(10),
+                    padding=ft.Padding.all(8),
+                    border_radius=ft.BorderRadius.all(10),
                     bgcolor="#003087"
                 ),
                 ft.Column([
@@ -96,8 +96,8 @@ def main(page: ft.Page):
                 theme_btn
             ], spacing=12)
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-        padding=ft.padding.symmetric(horizontal=20, vertical=12),
-        border=ft.border.only(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+        padding=ft.Padding.symmetric(horizontal=20, vertical=12),
+        border=ft.Border.only(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
         bgcolor=ft.Colors.SURFACE
     )
 
@@ -218,7 +218,6 @@ def main(page: ft.Page):
     page.add(main_layout)
 
 if __name__ == "__main__":
-    # Determine view mode: Web Browser or Native Desktop Window
     view_mode = ft.AppView.FLET_APP
     if "--web" in sys.argv:
         view_mode = ft.AppView.WEB_BROWSER

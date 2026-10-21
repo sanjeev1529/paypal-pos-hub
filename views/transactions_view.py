@@ -8,10 +8,10 @@ from config import BASE_DIR
 class TransactionsView(ft.Container):
     def __init__(self, page: ft.Page):
         super().__init__(expand=True)
-        self.page = page
+        self.app_page = page
         self.selected_filter = "All"
         self.search_term = ""
-        self.padding = ft.padding.all(20)
+        self.padding = ft.Padding.all(20)
 
         self.filter_chips_row = ft.Row(spacing=8, scroll=ft.ScrollMode.AUTO)
         self.tx_list_col = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
@@ -47,7 +47,7 @@ class TransactionsView(ft.Container):
             hint_text="Search by Order ID, email, note, or ID...",
             prefix_icon=ft.Icons.SEARCH,
             dense=True,
-            border_radius=ft.border_radius.all(10),
+            border_radius=ft.BorderRadius.all(10),
             expand=True,
             on_change=self.on_search_change
         )
@@ -74,11 +74,17 @@ class TransactionsView(ft.Container):
             self.tx_list_col
         ], spacing=12, expand=True)
 
+    def safe_update(self):
+        try:
+            self.update()
+        except:
+            pass
+
     def select_filter(self, val: str):
         self.selected_filter = val
         self.content = self.build_ui()
         self.load_transactions()
-        self.update()
+        self.safe_update()
 
     def on_search_change(self, e):
         self.search_term = e.control.value
@@ -96,8 +102,8 @@ class TransactionsView(ft.Container):
                         ft.Icon(ft.Icons.RECEIPT_LONG_OUTLINED, size=50, color=ft.Colors.GREY_400),
                         ft.Text("No transactions match your search.", color=ft.Colors.GREY_600)
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    alignment=ft.alignment.center,
-                    padding=ft.padding.all(40)
+                    alignment=ft.Alignment.CENTER,
+                    padding=ft.Padding.all(40)
                 )
             )
         else:
@@ -127,8 +133,8 @@ class TransactionsView(ft.Container):
                         ft.Row([
                             ft.Container(
                                 content=ft.Icon(icon_name, color="#003087", size=22),
-                                padding=ft.padding.all(10),
-                                border_radius=ft.border_radius.all(10),
+                                padding=ft.Padding.all(10),
+                                border_radius=ft.BorderRadius.all(10),
                                 bgcolor=ft.Colors.BLUE_50
                             ),
                             ft.Column([
@@ -136,8 +142,8 @@ class TransactionsView(ft.Container):
                                     ft.Text(type_label, weight=ft.FontWeight.BOLD, size=14),
                                     ft.Container(
                                         content=ft.Text(tx["id"], size=10, color=ft.Colors.GREY_700),
-                                        padding=ft.padding.symmetric(horizontal=6, vertical=2),
-                                        border_radius=ft.border_radius.all(4),
+                                        padding=ft.Padding.symmetric(horizontal=6, vertical=2),
+                                        border_radius=ft.BorderRadius.all(4),
                                         bgcolor=ft.Colors.GREY_100
                                     )
                                 ], spacing=8),
@@ -151,8 +157,8 @@ class TransactionsView(ft.Container):
                                 ft.Container(
                                     content=ft.Text(tx["status"].upper(), size=9, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_800),
                                     bgcolor=ft.Colors.GREEN_50,
-                                    padding=ft.padding.symmetric(horizontal=6, vertical=2),
-                                    border_radius=ft.border_radius.all(4)
+                                    padding=ft.Padding.symmetric(horizontal=6, vertical=2),
+                                    border_radius=ft.BorderRadius.all(4)
                                 )
                             ], horizontal_alignment=ft.CrossAxisAlignment.END, spacing=2),
                             ft.IconButton(
@@ -163,14 +169,14 @@ class TransactionsView(ft.Container):
                             )
                         ], spacing=8)
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    padding=ft.padding.symmetric(horizontal=16, vertical=12),
-                    border_radius=ft.border_radius.all(12),
+                    padding=ft.Padding.symmetric(horizontal=16, vertical=12),
+                    border_radius=ft.BorderRadius.all(12),
                     bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-                    border=ft.border.all(1, ft.Colors.OUTLINE_VARIANT)
+                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
                 )
                 self.tx_list_col.controls.append(item)
 
-        self.update()
+        self.safe_update()
 
     def show_tx_details(self, tx: dict):
         items = []
@@ -214,10 +220,10 @@ class TransactionsView(ft.Container):
                 height=340
             ),
             actions=[
-                ft.FilledButton("Close", style=ft.ButtonStyle(bgcolor="#003087", color=ft.Colors.WHITE), on_click=lambda _: self.page.pop_dialog())
+                ft.FilledButton("Close", style=ft.ButtonStyle(bgcolor="#003087", color=ft.Colors.WHITE), on_click=lambda _: self.app_page.pop_dialog())
             ]
         )
-        self.page.show_dialog(dlg)
+        self.app_page.show_dialog(dlg)
 
     def export_csv(self, _):
         txs = database.get_transactions(limit=1000)
@@ -228,9 +234,9 @@ class TransactionsView(ft.Container):
                 writer.writerow(["ID", "Type", "Amount", "Currency", "Fee", "Net", "Status", "Counterparty", "PayPal_Order_ID", "Reference_Note", "Timestamp"])
                 for tx in txs:
                     writer.writerow([tx["id"], tx["type"], tx["amount"], tx["currency"], tx["fee"], tx["net"], tx["status"], tx["counterparty"], tx["paypal_order_id"], tx["reference_note"], tx["timestamp"]])
-            self.page.show_dialog(ft.SnackBar(ft.Text(f"✓ Exported {len(txs)} transactions to {export_path.name}")))
+            self.app_page.show_dialog(ft.SnackBar(ft.Text(f"✓ Exported {len(txs)} transactions to {export_path.name}")))
         except Exception as e:
-            self.page.show_dialog(ft.SnackBar(ft.Text(f"Export failed: {str(e)}")))
+            self.app_page.show_dialog(ft.SnackBar(ft.Text(f"Export failed: {str(e)}")))
 
     def refresh(self):
         self.load_transactions()
