@@ -1,0 +1,6 @@
+flet>=1.0.4
+flet-desktop>=1.0.4
+httpx>=0.28.1
+qrcode>=8.2
+pillow>=13.0.0
+python-dotenv>=1.2.4

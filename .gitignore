@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Local Database & Exports
+*.db
+*.sqlite3
+transactions_export.csv
+
+# Secrets & Environment variables
+.env
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
