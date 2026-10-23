@@ -1,5 +1,5 @@
 @echo off
-title PayPal POS and Fintech Hub
+title Haven and Home Decor Studio
 cd /d "%~dp0"
 
 if not exist ".venv\Scripts\python.exe" (
@@ -11,5 +11,5 @@ if not exist ".venv\Scripts\python.exe" (
     call .venv\Scripts\activate.bat
 )
 
-echo Starting PayPal POS & Fintech Hub...
+echo Starting Haven and Home Decor Studio...
 python main.py %*

@@ -72,7 +72,7 @@ class WalletView(ft.Container):
         wallet = database.get_wallet()
         balance = wallet["balance"]
 
-        # Header balance card
+        # Header balance card with tactile hover depth
         balance_card = ft.Container(
             content=ft.Row([
                 ft.Column([
@@ -84,7 +84,8 @@ class WalletView(ft.Container):
                     content=ft.Icon(ft.Icons.ACCOUNT_BALANCE_WALLET, color=ft.Colors.WHITE, size=36),
                     bgcolor=ft.Colors.WHITE_24,
                     padding=ft.Padding.all(14),
-                    border_radius=ft.BorderRadius.all(14)
+                    border_radius=ft.BorderRadius.all(14),
+                    animate_scale=ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180,
                 )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             padding=ft.Padding.all(22),
@@ -93,20 +94,57 @@ class WalletView(ft.Container):
                 begin=ft.Alignment.TOP_LEFT,
                 end=ft.Alignment.BOTTOM_RIGHT,
                 colors=["#003087", "#0079C1"]
-            )
+            ),
+            animate_scale=ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180,
+            animate=ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180,
         )
+
+        def on_wallet_balance_hover(e):
+            is_hover = str(getattr(e, "data", "")).lower() == "true"
+            balance_card.scale = 1.015 if is_hover else 1.0
+            balance_card.shadow = ft.BoxShadow(blur_radius=22, color=ft.Colors.BLACK_26, offset=ft.Offset(0, 6)) if is_hover else None
+            try:
+                balance_card.update()
+            except Exception:
+                pass
+
+        balance_card.on_hover = on_wallet_balance_hover
 
         def set_preset_amount(amt: float):
             self.send_amount.value = f"{amt:.2f}"
             self.send_amount.update()
 
+        def make_preset_btn(amt: int):
+            return ft.Container(
+                content=ft.OutlinedButton(f"${amt}", on_click=lambda _: set_preset_amount(amt)),
+                animate_scale=ft.Animation(150, "easeOut") if hasattr(ft, "Animation") else 150,
+                on_hover=lambda e: (
+                    setattr(e.control, "scale", 1.08 if str(getattr(e, "data", "")).lower() == "true" else 1.0),
+                    e.control.update()
+                )
+            )
+
         preset_row = ft.Row([
             ft.Text("Quick amounts:", size=12, color=ft.Colors.GREY_600),
-            ft.OutlinedButton("$10", on_click=lambda _: set_preset_amount(10)),
-            ft.OutlinedButton("$25", on_click=lambda _: set_preset_amount(25)),
-            ft.OutlinedButton("$50", on_click=lambda _: set_preset_amount(50)),
-            ft.OutlinedButton("$100", on_click=lambda _: set_preset_amount(100)),
+            make_preset_btn(10),
+            make_preset_btn(25),
+            make_preset_btn(50),
+            make_preset_btn(100),
         ], spacing=6)
+
+        def attach_card_hover(card_widget):
+            card_widget.animate_scale = ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180
+            card_widget.animate = ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180
+            def on_hover(e):
+                is_hover = str(getattr(e, "data", "")).lower() == "true"
+                card_widget.scale = 1.015 if is_hover else 1.0
+                card_widget.border = ft.Border.all(1.5, "#0070BA") if is_hover else ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                card_widget.shadow = ft.BoxShadow(blur_radius=18, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 4)) if is_hover else None
+                try:
+                    card_widget.update()
+                except Exception:
+                    pass
+            card_widget.on_hover = on_hover
 
         # Tab 1: Send Card
         send_card = ft.Container(
@@ -188,6 +226,11 @@ class WalletView(ft.Container):
             border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
             expand=True
         )
+
+        attach_card_hover(send_card)
+        attach_card_hover(request_card)
+        attach_card_hover(deposit_card)
+        attach_card_hover(withdraw_card)
 
         return ft.ListView([
             balance_card,
@@ -279,7 +322,8 @@ class WalletView(ft.Container):
                     alignment=ft.Alignment.CENTER,
                     padding=ft.Padding.all(8),
                     border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
-                    border_radius=ft.BorderRadius.all(8)
+                    border_radius=ft.BorderRadius.all(8),
+                    animate_scale=ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180,
                 ),
                 ft.Text(f"Invoice Reference: {req_data['request_id']}", size=11, color=ft.Colors.GREY_600),
                 ft.FilledTonalButton(
@@ -291,7 +335,8 @@ class WalletView(ft.Container):
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=6),
             padding=ft.Padding.all(10),
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
-            border_radius=ft.BorderRadius.all(10)
+            border_radius=ft.BorderRadius.all(10),
+            animate_scale=ft.Animation(220, "easeOut") if hasattr(ft, "Animation") else 220,
         )
         self.safe_update()
 

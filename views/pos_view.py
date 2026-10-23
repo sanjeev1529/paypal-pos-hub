@@ -38,24 +38,35 @@ class PosView(ft.Container):
             disabled=True,
             on_click=self.open_checkout_dialog
         )
+        self.checkout_btn_box = ft.Container(
+            content=self.checkout_btn,
+            animate_scale=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
+        )
 
         self.content = self.build_ui()
         self.load_products()
 
     def build_ui(self):
         # Category Tabs
-        categories = ["All", "Electronics", "Beverages", "Accessories", "Services"]
+        categories = ["All", "Furniture", "Electronics", "Beverages", "Accessories", "Services"]
         cat_chips = []
         for cat in categories:
             is_sel = cat == self.selected_category
             cat_chips.append(
-                ft.FilledTonalButton(
-                    cat,
-                    style=ft.ButtonStyle(
-                        bgcolor="#003087" if is_sel else ft.Colors.SURFACE_CONTAINER_HIGH,
-                        color=ft.Colors.WHITE if is_sel else ft.Colors.ON_SURFACE
+                ft.Container(
+                    content=ft.FilledTonalButton(
+                        cat,
+                        style=ft.ButtonStyle(
+                            bgcolor="#003087" if is_sel else ft.Colors.SURFACE_CONTAINER_HIGH,
+                            color=ft.Colors.WHITE if is_sel else ft.Colors.ON_SURFACE
+                        ),
+                        on_click=lambda _, c=cat: self.select_category(c)
                     ),
-                    on_click=lambda _, c=cat: self.select_category(c)
+                    animate_scale=ft.Animation(140, "easeOut") if hasattr(ft, "Animation") else 140,
+                    on_hover=lambda e: (
+                        setattr(e.control, "scale", 1.05 if str(getattr(e, "data", "")).lower() == "true" else 1.0),
+                        e.control.update()
+                    )
                 )
             )
 
@@ -100,7 +111,7 @@ class PosView(ft.Container):
                     ft.Divider(height=8),
                     ft.Row([ft.Text("Total Due:", size=16, weight=ft.FontWeight.BOLD), self.total_text], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                     ft.Container(height=8),
-                    self.checkout_btn
+                    self.checkout_btn_box
                 ], spacing=6)
             ], expand=True),
             width=340,
@@ -147,7 +158,8 @@ class PosView(ft.Container):
                             content=ft.Icon(get_icon(prod["icon"]), color="#003087", size=24),
                             bgcolor=ft.Colors.BLUE_50,
                             padding=ft.Padding.all(10),
-                            border_radius=ft.BorderRadius.all(10)
+                            border_radius=ft.BorderRadius.all(10),
+                            animate_scale=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
                         ),
                         ft.Container(
                             content=ft.Text(stock_label, size=10, weight=ft.FontWeight.BOLD, color=stock_color),
@@ -174,8 +186,24 @@ class PosView(ft.Container):
                 padding=ft.Padding.all(14),
                 border_radius=ft.BorderRadius.all(14),
                 bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-                border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
+                animate_scale=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
+                animate=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
             )
+
+            def make_card_hover(card_ref):
+                def on_hover(e):
+                    is_hover = str(getattr(e, "data", "")).lower() == "true"
+                    card_ref.scale = 1.03 if is_hover else 1.0
+                    card_ref.border = ft.Border.all(1.5, "#0070BA") if is_hover else ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                    card_ref.shadow = ft.BoxShadow(blur_radius=18, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 5)) if is_hover else None
+                    try:
+                        card_ref.update()
+                    except Exception:
+                        pass
+                return on_hover
+
+            card.on_hover = make_card_hover(card)
             self.products_grid.controls.append(card)
 
         self.safe_update()
@@ -192,6 +220,22 @@ class PosView(ft.Container):
             self.cart[pid] = {"product": prod, "quantity": 1}
 
         self.refresh_cart()
+
+        # Micro-interaction: tactile bounce pulse on Checkout Button
+        try:
+            self.checkout_btn_box.scale = 1.07
+            self.checkout_btn_box.update()
+            import threading, time
+            def reset_btn():
+                time.sleep(0.14)
+                self.checkout_btn_box.scale = 1.0
+                try:
+                    self.checkout_btn_box.update()
+                except Exception:
+                    pass
+            threading.Thread(target=reset_btn, daemon=True).start()
+        except Exception:
+            pass
 
     def update_quantity(self, pid: int, delta: int):
         if pid in self.cart:
@@ -255,8 +299,23 @@ class PosView(ft.Container):
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                     padding=ft.Padding.all(8),
                     border_radius=ft.BorderRadius.all(8),
-                    bgcolor=ft.Colors.SURFACE_CONTAINER_LOW
+                    bgcolor=ft.Colors.SURFACE_CONTAINER_LOW,
+                    animate_offset=ft.Animation(150, "easeOut") if hasattr(ft, "Animation") else 150,
+                    animate=ft.Animation(150, "easeOut") if hasattr(ft, "Animation") else 150,
                 )
+
+                def make_row_hover(row_ref):
+                    def on_hover(e):
+                        is_hover = str(getattr(e, "data", "")).lower() == "true"
+                        row_ref.offset = ft.Offset(0.01, 0) if is_hover else ft.Offset(0, 0)
+                        row_ref.bgcolor = ft.Colors.SURFACE_CONTAINER_HIGH if is_hover else ft.Colors.SURFACE_CONTAINER_LOW
+                        try:
+                            row_ref.update()
+                        except Exception:
+                            pass
+                    return on_hover
+
+                row.on_hover = make_row_hover(row)
                 self.cart_items_col.controls.append(row)
 
             tax = subtotal * (float(database.get_setting("tax_rate", "8.0")) / 100.0)
@@ -432,6 +491,12 @@ class PosView(ft.Container):
             ], spacing=8),
             content=ft.Container(
                 content=ft.Column([
+                    ft.Container(
+                        content=ft.Icon(ft.Icons.CHECK_CIRCLE, color=ft.Colors.GREEN_600, size=48),
+                        alignment=ft.Alignment.CENTER,
+                        padding=ft.Padding.only(top=6, bottom=4),
+                        animate_scale=ft.Animation(260, "easeOut") if hasattr(ft, "Animation") else 260,
+                    ),
                     ft.Container(
                         content=ft.Column([
                             ft.Text(database.get_setting("store_name", "Fintech Store"), size=16, weight=ft.FontWeight.BOLD),

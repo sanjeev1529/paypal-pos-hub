@@ -118,6 +118,24 @@ class SettingsView(ft.Container):
             border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
         )
 
+        def attach_card_hover(card_widget):
+            card_widget.animate_scale = ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180
+            card_widget.animate = ft.Animation(180, "easeOut") if hasattr(ft, "Animation") else 180
+            def on_hover(e):
+                is_hover = str(getattr(e, "data", "")).lower() == "true"
+                card_widget.scale = 1.01 if is_hover else 1.0
+                card_widget.border = ft.Border.all(1.5, "#0070BA") if is_hover else ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                card_widget.shadow = ft.BoxShadow(blur_radius=16, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 4)) if is_hover else None
+                try:
+                    card_widget.update()
+                except Exception:
+                    pass
+            card_widget.on_hover = on_hover
+
+        attach_card_hover(paypal_card)
+        attach_card_hover(store_card)
+        attach_card_hover(data_card)
+
         # Section 3: Data & Reset
         data_card = ft.Container(
             content=ft.Column([

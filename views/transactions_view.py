@@ -33,13 +33,20 @@ class TransactionsView(ft.Container):
         for label, val in filters:
             is_sel = val == self.selected_filter
             self.filter_chips_row.controls.append(
-                ft.FilledTonalButton(
-                    label,
-                    style=ft.ButtonStyle(
-                        bgcolor="#003087" if is_sel else ft.Colors.SURFACE_CONTAINER_HIGH,
-                        color=ft.Colors.WHITE if is_sel else ft.Colors.ON_SURFACE
+                ft.Container(
+                    content=ft.FilledTonalButton(
+                        label,
+                        style=ft.ButtonStyle(
+                            bgcolor="#003087" if is_sel else ft.Colors.SURFACE_CONTAINER_HIGH,
+                            color=ft.Colors.WHITE if is_sel else ft.Colors.ON_SURFACE
+                        ),
+                        on_click=lambda _, v=val: self.select_filter(v)
                     ),
-                    on_click=lambda _, v=val: self.select_filter(v)
+                    animate_scale=ft.Animation(140, "easeOut") if hasattr(ft, "Animation") else 140,
+                    on_hover=lambda e: (
+                        setattr(e.control, "scale", 1.05 if str(getattr(e, "data", "")).lower() == "true" else 1.0),
+                        e.control.update()
+                    )
                 )
             )
 
@@ -172,8 +179,24 @@ class TransactionsView(ft.Container):
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
                     border_radius=ft.BorderRadius.all(12),
                     bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
+                    animate_offset=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
+                    animate=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
                 )
+
+                def make_tx_hover(item_ref):
+                    def on_hover(e):
+                        is_hover = str(getattr(e, "data", "")).lower() == "true"
+                        item_ref.offset = ft.Offset(0.012, 0) if is_hover else ft.Offset(0, 0)
+                        item_ref.border = ft.Border.all(1.5, "#0070BA") if is_hover else ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                        item_ref.shadow = ft.BoxShadow(blur_radius=14, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 3)) if is_hover else None
+                        try:
+                            item_ref.update()
+                        except Exception:
+                            pass
+                    return on_hover
+
+                item.on_hover = make_tx_hover(item)
                 self.tx_list_col.controls.append(item)
 
         self.safe_update()

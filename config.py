@@ -12,6 +12,8 @@ DB_PATH = BASE_DIR / "paypal_pos.db"
 DEFAULT_PAYPAL_MODE = os.getenv("PAYPAL_MODE", "sandbox")  # "sandbox" or "live"
 DEFAULT_PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
 DEFAULT_PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5")
 
 # Store Defaults
 DEFAULT_STORE_NAME = os.getenv("STORE_NAME", "NovaTech Retail & Fintech")

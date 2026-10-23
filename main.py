@@ -1,225 +1,152 @@
 import sys
 import flet as ft
 import database
-from paypal_service import paypal_service
 
-from views.dashboard_view import DashboardView
-from views.pos_view import PosView
-from views.wallet_view import WalletView
-from views.transactions_view import TransactionsView
 from views.inventory_view import InventoryView
-from views.settings_view import SettingsView
+from views.room_designer_view import RoomDesignerView
+
+DEEP_GREEN = "#234A3D"
+SOFT_GREEN = "#E8F0E9"
+WARM_WHITE = "#FBFAF7"
+
+
+class HomeDecorHomeView(ft.Container):
+    def __init__(self, page, navigate_to):
+        super().__init__(expand=True, padding=ft.Padding.all(24))
+        self.navigate_to = navigate_to
+        self.product_grid = ft.GridView(expand=True, runs_count=3, max_extent=240,
+                                        child_aspect_ratio=1.55, spacing=12, run_spacing=12)
+        self.content = self.build_ui()
+        self.refresh()
+
+    def build_ui(self):
+        hero = ft.Container(
+            content=ft.Row([
+                ft.Column([
+                    ft.Text("Make room for home.", size=32, weight=ft.FontWeight.BOLD, color=DEEP_GREEN),
+                    ft.Text("Thoughtful furniture and decor, imagined in your own space.",
+                            size=14, color=ft.Colors.GREY_700),
+                    ft.FilledButton("Visualize your room", icon=ft.Icons.AUTO_AWESOME,
+                                    style=ft.ButtonStyle(bgcolor=DEEP_GREEN, color=ft.Colors.WHITE),
+                                    on_click=lambda _: self.navigate_to("designer"))
+                ], spacing=14, expand=True),
+                ft.Container(content=ft.Icon(ft.Icons.CHAIR_ALT, size=72, color=DEEP_GREEN),
+                             padding=28, bgcolor="#DCE8DD", border_radius=80)
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+               vertical_alignment=ft.CrossAxisAlignment.CENTER),
+            padding=28, bgcolor=SOFT_GREEN, border_radius=22)
+        return ft.Column([
+            hero,
+            ft.Row([
+                ft.Column([
+                    ft.Text("A few pieces to get you started", size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text("Choose a piece, then see how it feels in your room.",
+                            size=12, color=ft.Colors.GREY_600)
+                ], spacing=4),
+                ft.Container(expand=True),
+                ft.TextButton("Browse all decor", icon=ft.Icons.ARROW_FORWARD,
+                              on_click=lambda _: self.navigate_to("catalog"))
+            ]),
+            self.product_grid
+        ], expand=True, spacing=18)
+
+    def refresh(self):
+        self.product_grid.controls.clear()
+        for product in database.get_products(category="Furniture")[:6]:
+            icon_name = (product.get("icon") or "chair").replace("-", "_").upper()
+            icon = getattr(ft.Icons, icon_name, ft.Icons.CHAIR)
+            self.product_grid.controls.append(ft.Container(
+                content=ft.Row([
+                    ft.Container(content=ft.Icon(icon, color=DEEP_GREEN, size=24),
+                                 padding=12, bgcolor=SOFT_GREEN, border_radius=12),
+                    ft.Column([
+                        ft.Text(product["name"], size=13, weight=ft.FontWeight.BOLD,
+                                max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                        ft.Text(f"${product['price']:,.2f}", size=12, color=ft.Colors.GREY_700)
+                    ], spacing=5, expand=True)
+                ], spacing=12),
+                padding=14, bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
+                border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT), border_radius=15))
+        try:
+            self.update()
+        except Exception:
+            pass
+
 
 def main(page: ft.Page):
-    # Initialize database tables and seed sample data
     database.init_db()
-
-    page.title = "PayPal Point of Sale & Fintech Hub"
+    page.title = "Haven & Home | Home Decor"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
+    page.bgcolor = WARM_WHITE
 
-    # TopBar Widgets
-    store_title_text = ft.Text(database.get_setting("store_name", "NovaTech Retail & Fintech"), size=16, weight=ft.FontWeight.BOLD)
-    
-    mode_badge_text = ft.Text("", size=11, weight=ft.FontWeight.BOLD)
-    mode_badge_container = ft.Container(
-        content=mode_badge_text,
-        padding=ft.Padding.symmetric(horizontal=10, vertical=4),
-        border_radius=ft.BorderRadius.all(12),
-    )
-
-    balance_pill_text = ft.Text("$0.00", size=13, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
-    balance_pill = ft.Container(
-        content=ft.Row([
-            ft.Icon(ft.Icons.ACCOUNT_BALANCE_WALLET, color=ft.Colors.WHITE, size=16),
-            balance_pill_text
-        ], spacing=6),
-        bgcolor="#003087",
-        padding=ft.Padding.symmetric(horizontal=12, vertical=6),
-        border_radius=ft.BorderRadius.all(20),
-        on_click=lambda _: navigate_to("wallet")
-    )
-
-    def update_header():
-        wallet = database.get_wallet()
-        balance_pill_text.value = f"${wallet['balance']:,.2f}"
-
-        cfg = paypal_service.get_config()
-        if cfg["simulation_mode"]:
-            mode_badge_text.value = "⚡ PayPal Simulation"
-            mode_badge_text.color = ft.Colors.BLUE_900
-            mode_badge_container.bgcolor = ft.Colors.BLUE_100
-        elif cfg["mode"] == "live":
-            mode_badge_text.value = "🟢 PayPal Live Production"
-            mode_badge_text.color = ft.Colors.GREEN_900
-            mode_badge_container.bgcolor = ft.Colors.GREEN_100
-        else:
-            mode_badge_text.value = "🌐 PayPal Sandbox Active"
-            mode_badge_text.color = ft.Colors.CYAN_900
-            mode_badge_container.bgcolor = ft.Colors.CYAN_100
-
-        store_title_text.value = database.get_setting("store_name", "NovaTech Retail & Fintech")
-        page.update()
-
-    def toggle_theme(_):
-        if page.theme_mode == ft.ThemeMode.LIGHT:
-            page.theme_mode = ft.ThemeMode.DARK
-            theme_btn.icon = ft.Icons.LIGHT_MODE
-        else:
-            page.theme_mode = ft.ThemeMode.LIGHT
-            theme_btn.icon = ft.Icons.DARK_MODE
-        page.update()
-
-    theme_btn = ft.IconButton(
-        icon=ft.Icons.DARK_MODE,
-        tooltip="Toggle Dark/Light Mode",
-        on_click=toggle_theme
-    )
-
-    app_bar = ft.Container(
-        content=ft.Row([
-            ft.Row([
-                ft.Container(
-                    content=ft.Icon(ft.Icons.PAYMENTS_ROUNDED, color=ft.Colors.WHITE, size=22),
-                    padding=ft.Padding.all(8),
-                    border_radius=ft.BorderRadius.all(10),
-                    bgcolor="#003087"
-                ),
-                ft.Column([
-                    store_title_text,
-                    ft.Text("PayPal Cross-Platform POS & Wallet Manager", size=11, color=ft.Colors.GREY_600)
-                ], spacing=2)
-            ], spacing=10),
-            ft.Row([
-                mode_badge_container,
-                balance_pill,
-                theme_btn
-            ], spacing=12)
-        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-        padding=ft.Padding.symmetric(horizontal=20, vertical=12),
-        border=ft.Border.only(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
-        bgcolor=ft.Colors.SURFACE
-    )
-
-    # Content Container
-    content_area = ft.Container(expand=True)
-
-    # Views Registry
     views = {}
 
-    def on_tx_sync():
-        update_header()
-        if "dashboard" in views:
-            views["dashboard"].refresh()
-        if "transactions" in views:
-            views["transactions"].refresh()
-        if "wallet" in views:
-            views["wallet"].refresh()
-        if "pos" in views:
-            views["pos"].refresh()
+    def navigate_to(key):
+        if key not in views:
+            return
+        views[key].refresh()
+        content_area.content = views[key]
+        try:
+            content_area.update()
+        except Exception:
+            pass
+        page.update()
 
-    def on_catalog_sync():
-        if "pos" in views:
-            views["pos"].refresh()
-        if "inventory" in views:
-            views["inventory"].refresh()
+    views["home"] = HomeDecorHomeView(page, navigate_to)
+    views["catalog"] = InventoryView(page)
+    views["designer"] = RoomDesignerView(page)
+    content_area = ft.AnimatedSwitcher(
+        content=views["home"],
+        transition=getattr(ft.AnimatedSwitcherTransition, "FADE", "fade")
+        if hasattr(ft, "AnimatedSwitcherTransition") else "fade",
+        duration=220, reverse_duration=160, expand=True)
 
-    def on_settings_sync():
-        update_header()
-        if "dashboard" in views:
-            views["dashboard"].refresh()
+    view_keys = ["home", "catalog", "designer"]
 
-    views["dashboard"] = DashboardView(page, navigate_to=lambda target: navigate_to(target))
-    views["pos"] = PosView(page, on_transaction_completed=on_tx_sync)
-    views["wallet"] = WalletView(page, on_transaction_completed=on_tx_sync)
-    views["transactions"] = TransactionsView(page)
-    views["inventory"] = InventoryView(page, on_catalog_updated=on_catalog_sync)
-    views["settings"] = SettingsView(page, on_settings_changed=on_settings_sync)
-
-    nav_index_map = ["dashboard", "pos", "wallet", "transactions", "inventory", "settings"]
-
-    def set_active_view(view_key: str):
-        if view_key in views:
-            content_area.content = views[view_key]
-            views[view_key].refresh()
-            page.update()
+    def on_nav_change(index):
+        rail.selected_index = index
+        navigate_to(view_keys[index])
 
     rail = ft.NavigationRail(
-        selected_index=0,
-        label_type=ft.NavigationRailLabelType.ALL,
-        min_width=72,
-        min_extended_width=180,
-        leading=ft.Container(height=10),
+        selected_index=0, label_type=ft.NavigationRailLabelType.ALL, min_width=76,
+        leading=ft.Container(height=8),
         destinations=[
-            ft.NavigationRailDestination(
-                icon=ft.Icons.DASHBOARD_OUTLINED,
-                selected_icon=ft.Icons.DASHBOARD,
-                label="Dashboard"
-            ),
-            ft.NavigationRailDestination(
-                icon=ft.Icons.POINT_OF_SALE_OUTLINED,
-                selected_icon=ft.Icons.POINT_OF_SALE,
-                label="POS Checkout"
-            ),
-            ft.NavigationRailDestination(
-                icon=ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED,
-                selected_icon=ft.Icons.ACCOUNT_BALANCE_WALLET,
-                label="Wallet & P2P"
-            ),
-            ft.NavigationRailDestination(
-                icon=ft.Icons.RECEIPT_LONG_OUTLINED,
-                selected_icon=ft.Icons.RECEIPT_LONG,
-                label="Ledger & Receipts"
-            ),
-            ft.NavigationRailDestination(
-                icon=ft.Icons.INVENTORY_2_OUTLINED,
-                selected_icon=ft.Icons.INVENTORY_2,
-                label="Catalog"
-            ),
-            ft.NavigationRailDestination(
-                icon=ft.Icons.SETTINGS_OUTLINED,
-                selected_icon=ft.Icons.SETTINGS,
-                label="Settings"
-            ),
+            ft.NavigationRailDestination(icon=ft.Icons.HOME_OUTLINED,
+                                         selected_icon=ft.Icons.HOME, label="Home"),
+            ft.NavigationRailDestination(icon=ft.Icons.CHAIR_OUTLINED,
+                                         selected_icon=ft.Icons.CHAIR, label="Decor Catalog"),
+            ft.NavigationRailDestination(icon=ft.Icons.AUTO_AWESOME_OUTLINED,
+                                         selected_icon=ft.Icons.AUTO_AWESOME, label="Room Designer")
         ],
-        on_change=lambda e: on_nav_change(e.control.selected_index)
-    )
+        on_change=lambda e: on_nav_change(e.control.selected_index))
 
-    def on_nav_change(index: int):
-        rail.selected_index = index
-        key = nav_index_map[index]
-        set_active_view(key)
+    header = ft.Container(
+        content=ft.Row([
+            ft.Row([
+                ft.Container(content=ft.Icon(ft.Icons.HOME, color=ft.Colors.WHITE, size=22),
+                             padding=9, bgcolor=DEEP_GREEN, border_radius=12),
+                ft.Column([
+                    ft.Text("Haven & Home", size=17, weight=ft.FontWeight.BOLD, color=DEEP_GREEN),
+                    ft.Text("HOME DECOR STUDIO", size=9, weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.GREY_600)
+                ], spacing=1)
+            ], spacing=10),
+            ft.FilledTonalButton("Design my room", icon=ft.Icons.AUTO_AWESOME,
+                                 on_click=lambda _: navigate_to("designer"))
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        padding=ft.Padding.symmetric(horizontal=22, vertical=12),
+        border=ft.Border.only(bottom=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT)),
+        bgcolor=WARM_WHITE)
 
-    def navigate_to(target: str):
-        if target == "wallet_send":
-            rail.selected_index = 2
-            set_active_view("wallet")
-        elif target == "wallet_receive":
-            rail.selected_index = 2
-            set_active_view("wallet")
-        elif target in nav_index_map:
-            idx = nav_index_map.index(target)
-            rail.selected_index = idx
-            set_active_view(target)
+    page.add(ft.Column([
+        header,
+        ft.Row([rail, ft.VerticalDivider(width=1), content_area], expand=True, spacing=0)
+    ], expand=True, spacing=0))
 
-    # Initial view load
-    content_area.content = views["dashboard"]
-    update_header()
-
-    main_layout = ft.Column([
-        app_bar,
-        ft.Row([
-            rail,
-            ft.VerticalDivider(width=1),
-            content_area
-        ], expand=True, spacing=0)
-    ], expand=True, spacing=0)
-
-    page.add(main_layout)
 
 if __name__ == "__main__":
     view_mode = ft.AppView.FLET_APP
     if "--web" in sys.argv:
         view_mode = ft.AppView.WEB_BROWSER
-    
     ft.run(main, view=view_mode)

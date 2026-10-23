@@ -1,6 +1,6 @@
 @echo off
-title PayPal POS and Fintech Hub (Browser View)
+title Haven and Home Decor Studio (Browser View)
 cd /d "%~dp0"
 call .venv\Scripts\activate.bat
-echo Starting PayPal POS & Fintech Hub in Web Browser...
+echo Starting Haven and Home Decor Studio in Web Browser...
 python main.py --web

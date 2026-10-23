@@ -59,7 +59,7 @@ class InventoryView(ft.Container):
 
     def load_products(self):
         self.products_col.controls.clear()
-        prods = database.get_products(search=self.search_term)
+        prods = database.get_products(category="Furniture", search=self.search_term)
 
         if not prods:
             self.products_col.controls.append(
@@ -111,8 +111,24 @@ class InventoryView(ft.Container):
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
                     border_radius=ft.BorderRadius.all(12),
                     bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
-                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                    border=ft.Border.all(1, ft.Colors.OUTLINE_VARIANT),
+                    animate_offset=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
+                    animate=ft.Animation(160, "easeOut") if hasattr(ft, "Animation") else 160,
                 )
+
+                def make_row_hover(row_ref):
+                    def on_hover(e):
+                        is_hover = str(getattr(e, "data", "")).lower() == "true"
+                        row_ref.offset = ft.Offset(0.012, 0) if is_hover else ft.Offset(0, 0)
+                        row_ref.border = ft.Border.all(1.5, "#0070BA") if is_hover else ft.Border.all(1, ft.Colors.OUTLINE_VARIANT)
+                        row_ref.shadow = ft.BoxShadow(blur_radius=14, color=ft.Colors.BLACK_12, offset=ft.Offset(0, 3)) if is_hover else None
+                        try:
+                            row_ref.update()
+                        except Exception:
+                            pass
+                    return on_hover
+
+                row.on_hover = make_row_hover(row)
                 self.products_col.controls.append(row)
 
         self.safe_update()
@@ -125,14 +141,8 @@ class InventoryView(ft.Container):
         sku_f = ft.TextField(label="SKU / Barcode", value=prod["sku"] if is_edit else f"PROD-{len(database.get_products())+1:03d}", border_radius=ft.BorderRadius.all(8))
         cat_f = ft.Dropdown(
             label="Category",
-            value=prod["category"] if is_edit else "Electronics",
-            options=[
-                ft.DropdownOption("Electronics", "Electronics"),
-                ft.DropdownOption("Beverages", "Beverages"),
-                ft.DropdownOption("Accessories", "Accessories"),
-                ft.DropdownOption("Services", "Services"),
-                ft.DropdownOption("General", "General")
-            ],
+            value="Furniture",
+            options=[ft.DropdownOption("Furniture", "Furniture")],
             border_radius=ft.BorderRadius.all(8)
         )
         price_f = ft.TextField(label="Price ($)", value=f"{prod['price']:.2f}" if is_edit else "19.99", border_radius=ft.BorderRadius.all(8), keyboard_type=ft.KeyboardType.NUMBER)
@@ -142,7 +152,7 @@ class InventoryView(ft.Container):
         def save_product(_):
             name = name_f.value.strip()
             sku = sku_f.value.strip()
-            cat = cat_f.value or "General"
+            cat = "Furniture"
             if not name or not sku:
                 self.app_page.show_dialog(ft.SnackBar(ft.Text("Name and SKU are required.")))
                 return

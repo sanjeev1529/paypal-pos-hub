@@ -104,6 +104,22 @@ def init_db():
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, seed_products)
 
+    # Sample furniture for the AI Room Designer. Add these to existing databases too.
+    cursor.execute("SELECT COUNT(*) AS count FROM products WHERE category = 'Furniture'")
+    if cursor.fetchone()["count"] == 0:
+        furniture_products = [
+            ("Haven 3-Seater Sofa", "FURN-001", "Furniture", 899.00, 12, "weekend", "Soft ivory upholstery, oak legs, and a relaxed modern silhouette."),
+            ("Luna Modular Sofa Set", "FURN-002", "Furniture", 1499.00, 8, "weekend", "Modular warm-gray sectional with deep seats and low profile."),
+            ("Arlo Accent Chair", "FURN-003", "Furniture", 429.00, 15, "chair", "Textured rust accent chair with slim walnut legs."),
+            ("Marlow Coffee Table", "FURN-004", "Furniture", 289.00, 20, "table_restaurant", "Round natural oak coffee table with a sculptural base."),
+            ("Sora Floor Lamp", "FURN-005", "Furniture", 159.00, 18, "light", "Brushed brass floor lamp with a warm linen shade."),
+            ("Woven Neutral Area Rug", "FURN-006", "Furniture", 349.00, 10, "texture", "Hand-woven cream and sand rug with a subtle geometric texture.")
+        ]
+        cursor.executemany("""
+            INSERT OR IGNORE INTO products (name, sku, category, price, stock, icon, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, furniture_products)
+
     # Seed sample transactions if empty
     cursor.execute("SELECT COUNT(*) as count FROM transactions")
     if cursor.fetchone()["count"] == 0:
